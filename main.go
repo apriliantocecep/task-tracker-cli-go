@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -29,8 +30,43 @@ func main() {
 		}
 		content := args[2]
 		addTask(content)
+	case "update":
+		if len(args) < 4 {
+			log.Fatalln("usage: update id \"update detail\"")
+		}
+		id := args[2]
+		content := args[3]
+		taskId, err := strconv.Atoi(id)
+		if err != nil {
+			log.Fatalln("can't parse id")
+		}
+		updateTask(taskId, content)
 	default:
 		log.Fatalln("no match command. available are: add")
+	}
+}
+
+func updateTask(id int, content string) {
+	tasks, err := loadTasks()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	found := false
+	for i, task := range tasks {
+		if task.Id == id {
+			found = true
+			task.Description = content
+			task.UpdatedAt = time.Now()
+			tasks[i] = task
+			break
+		}
+	}
+
+	if !found {
+		log.Fatalf("Task with ID %d not found\n", id)
+	} else {
+		saveTask(&tasks)
+		log.Println("Task updated successfully.")
 	}
 }
 
