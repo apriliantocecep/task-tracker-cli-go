@@ -104,6 +104,21 @@ func markTask(id int, status string) {
 	}
 }
 
+func timeAgo(t time.Time) string {
+	now := time.Now()
+	diff := now.Sub(t)
+
+	if diff.Seconds() < 60 {
+		return "few minute ago"
+	} else if diff.Minutes() < 60 {
+		return fmt.Sprintf("%d minutes ago", int(diff.Minutes()))
+	} else if diff.Hours() < 24 {
+		return fmt.Sprintf("%d hours ago", int(diff.Hours()))
+	} else {
+		return fmt.Sprintf("%d days ago", int(diff.Hours()/24))
+	}
+}
+
 func listTask(statuses ...string) {
 	tasks, err := loadTasks()
 	if err != nil {
@@ -126,7 +141,7 @@ func listTask(statuses ...string) {
 		log.Fatalln("No tasks found")
 	} else {
 		for _, task := range filteredTasks {
-			fmt.Printf("[%d] %s (%s)\n", task.Id, task.Description, task.Status)
+			fmt.Printf("[%d] %s (%s) - %s\n", task.Id, task.Description, task.Status, timeAgo(task.UpdatedAt))
 		}
 	}
 }
