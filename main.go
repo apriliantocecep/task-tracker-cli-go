@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"slices"
@@ -52,8 +53,37 @@ func main() {
 			log.Fatalln("can't parse id")
 		}
 		deleteTask(taskId)
+	case "list":
+		listTask(args[2:]...)
 	default:
 		log.Fatalln("no match command. available are: add")
+	}
+}
+
+func listTask(statuses ...string) {
+	tasks, err := loadTasks()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	status := "all"
+	if len(statuses) > 0 {
+		status = statuses[0]
+	}
+	var filteredTasks []Task
+	if status == "all" {
+		filteredTasks = tasks
+	} else {
+		newTasks := slices.DeleteFunc(tasks, func(task Task) bool {
+			return task.Status != status
+		})
+		filteredTasks = newTasks
+	}
+	if len(filteredTasks) <= 0 {
+		log.Fatalln("No tasks found")
+	} else {
+		for _, task := range filteredTasks {
+			fmt.Printf("[%d] %s (%s)\n", task.Id, task.Description, task.Status)
+		}
 	}
 }
 
