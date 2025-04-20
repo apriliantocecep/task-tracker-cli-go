@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"slices"
 	"strconv"
 	"time"
 )
@@ -41,8 +42,36 @@ func main() {
 			log.Fatalln("can't parse id")
 		}
 		updateTask(taskId, content)
+	case "delete":
+		if len(args) < 3 {
+			log.Fatalln("usage: delete task_id")
+		}
+		id := args[2]
+		taskId, err := strconv.Atoi(id)
+		if err != nil {
+			log.Fatalln("can't parse id")
+		}
+		deleteTask(taskId)
 	default:
 		log.Fatalln("no match command. available are: add")
+	}
+}
+
+func deleteTask(id int) {
+	tasks, err := loadTasks()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	index := slices.IndexFunc(tasks, func(task Task) bool {
+		return task.Id == id
+	})
+
+	if index != -1 {
+		tasks = slices.Delete(tasks, index, index+1)
+		saveTask(&tasks)
+		log.Println("Task deleted successfully")
+	} else {
+		log.Printf("Task with ID %d not found", id)
 	}
 }
 
