@@ -55,8 +55,52 @@ func main() {
 		deleteTask(taskId)
 	case "list":
 		listTask(args[2:]...)
+	case "mark-done":
+		if len(args) < 3 {
+			log.Fatalln("usage: mark-done <task_id>")
+		}
+		id := args[2]
+		taskId, err := strconv.Atoi(id)
+		if err != nil {
+			log.Fatalln("can't parse id")
+		}
+		markTask(taskId, "done")
+	case "mark-in-progress":
+		if len(args) < 3 {
+			log.Fatalln("usage: mark-in-progress <task_id>")
+		}
+		id := args[2]
+		taskId, err := strconv.Atoi(id)
+		if err != nil {
+			log.Fatalln("can't parse id")
+		}
+		markTask(taskId, "in-progress")
 	default:
-		log.Fatalln("no match command. available are: add")
+		log.Fatalln("no match command. available are: add, update, delete, list, mark-done. mark-in-progress")
+	}
+}
+
+func markTask(id int, status string) {
+	tasks, err := loadTasks()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	found := false
+	for i, task := range tasks {
+		if task.Id == id {
+			found = true
+			task.Status = status
+			task.UpdatedAt = time.Now()
+			tasks[i] = task
+			break
+		}
+	}
+
+	if !found {
+		log.Fatalf("Task with ID %d not found\n", id)
+	} else {
+		saveTask(&tasks)
+		log.Printf("Task marked as %s.", status)
 	}
 }
 
